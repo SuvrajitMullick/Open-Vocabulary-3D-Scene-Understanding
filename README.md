@@ -150,26 +150,18 @@ Open-Vocabulary-3D-Scene-Understanding/
 
 <div align="center">
 
-```
-         Input Scenes (ramen / figurines / teatime)
-                             │
-                             ▼
-            ┌─────────────────────────────────┐
-            │  Work 1 — CAHMU                 │
-            │  (Training-free mask unifier)   │
-            │  → Unified single-level SAM     │
-            │    masks via OpenGaussian       │
-            │    preprocessing scripts        │
-            └────────────────┬────────────────┘
-                             │ Unified Masks
-           ┌─────────────────┼──────────────────┐
-           ▼                 ▼                  ▼
-      ┌──────────┐    ┌──────────────┐   ┌───────────────┐
-      │ Work 2 — │    │  Work 3 —    │   │   Work 4 —    │
-      │ Improved │    │ Introducing  │   │  Enhanced     │
-      │ Gaussian │    │ SVRaster     │   │  OpenGaussian │
-      │ Grouping │    │ Segmentation │   │               │
-      └──────────┘    └──────────────┘   └───────────────┘
+```mermaid
+flowchart TD
+    S(["Input Scenes — ramen / figurines / teatime"])
+    W1["Work 1 — CAHMUTraining-free mask unifier→ Unified single-level SAM masksvia OpenGaussian preprocessing scripts"]
+    UM(["Unified Masks"])
+    W2["Work 2 —Improved Gaussian Grouping"]
+    W3["Work 3 —Introducing SVRaster Segmentation"]
+    W4["Work 4 —Enhanced OpenGaussian"]
+
+    S --> W1
+    W1 --> UM
+    UM --> W2 & W3 & W4
 ```
 
 </div>
