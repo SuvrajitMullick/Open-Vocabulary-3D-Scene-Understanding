@@ -1,0 +1,25 @@
+{
+    "densify_until_iter": 15000,
+
+    "num_classes": 256,
+
+    "reg2d_lambda_val": 1,
+
+    "reg3d_interval": 5,
+    "reg3d_k": 5,
+    "reg3d_lambda_val": 2,
+    "reg3d_max_points": 200000,
+    "reg3d_sample_size": 2000,
+        
+    "reg3d_wt_lambda_val": 50,
+    "reg3d_wt_interval": 100,
+    "num_of_views": 20,
+    
+    "con3d_interval": 5,
+    "contrastive_lambda_2d": 0.0005,
+    "contrastive_lambda_3d": 0.02,
+    
+    "hyp3d_interval": 5,
+    "hypersphere_lambda_2d": 0.001,
+    "hypersphere_lambda_3d": 0.001
+}

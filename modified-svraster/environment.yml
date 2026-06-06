@@ -1,0 +1,43 @@
+name: svraster
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - git
+  - pytorch==2.1.2
+  - torchvision==0.16.2
+  - torchaudio==2.1.2
+  - pytorch-cuda=12.1
+  - timm
+  - pip
+  - pip:
+      - numpy==1.26.4
+      - setuptools==69.5.1
+      - einops
+      - opencv-python==4.8.0.74
+      - opencv-contrib-python==4.8.0.74
+      - yacs
+      - tqdm
+      - natsort
+      - argparse
+      - pillow
+      - imageio
+      - imageio-ffmpeg
+      - scikit-image
+      - pycolmap
+      - plyfile
+      - shapely
+      - trimesh==4.0.4
+      - open3d==0.18.0
+      - gpytoolbox
+      - lpips
+      - pytorch-msssim
+      - pycocotools
+      - transformers<4.40.0
+      - addict
+      - yapf
+      - huggingface-hub==0.22.2
+      - supervision
