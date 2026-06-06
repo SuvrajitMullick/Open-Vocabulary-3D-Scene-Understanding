@@ -150,26 +150,26 @@ Open-Vocabulary-3D-Scene-Understanding/
 
 <div align="center">
 
-```text
+```
          Input Scenes (ramen / figurines / teatime)
                              │
                              ▼
-         ┌───────────────────────────────────────┐
-         │  Work 1 — CAHMU                       │
-         │  (Training-free mask unifier)         │
-         │  → Unified single-level SAM           │
-         │    masks via OpenGaussian             │
-         │    preprocessing scripts              │
-         └───────────────────┬───────────────────┘
+            ┌─────────────────────────────────┐
+            │  Work 1 — CAHMU                 │
+            │  (Training-free mask unifier)   │
+            │  → Unified single-level SAM     │
+            │    masks via OpenGaussian       │
+            │    preprocessing scripts        │
+            └────────────────┬────────────────┘
                              │ Unified Masks
-         ┌───────────────────┼───────────────────┐
-         ▼                   ▼                   ▼
- ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
- │ Work 2 —      │   │ Work 3 —      │   │ Work 4 —      │
- │ Improved      │   │ Introducing   │   │ Enhanced      │
- │ Gaussian      │   │ SVRaster      │   │ OpenGaussian  │
- │ Grouping      │   │ Segmentation  │   │               │
- └───────────────┘   └───────────────┘   └───────────────┘
+           ┌─────────────────┼──────────────────┐
+           ▼                 ▼                  ▼
+      ┌──────────┐    ┌──────────────┐   ┌───────────────┐
+      │ Work 2 — │    │  Work 3 —    │   │   Work 4 —    │
+      │ Improved │    │ Introducing  │   │  Enhanced     │
+      │ Gaussian │    │ SVRaster     │   │  OpenGaussian │
+      │ Grouping │    │ Segmentation │   │               │
+      └──────────┘    └──────────────┘   └───────────────┘
 ```
 
 </div>
