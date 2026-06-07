@@ -460,7 +460,7 @@ bash script/train_render_eval.sh ramen output_crop_sam_hq_all crop_object_mask_s
 | Parameter | Value |
 |-----------|-------|
 | Iterations | 30,000 |
-| Optimizer | Adam (default Gaussian-Grouping schedule) |
+| Optimizer | Adam (default 3DGS schedule) |
 | Identity feature classes | 256 |
 | λ_GST | 50 |
 | λ²ᵈ_cont | 5×10⁻⁴ |
