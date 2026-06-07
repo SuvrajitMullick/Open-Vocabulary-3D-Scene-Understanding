@@ -259,7 +259,7 @@ CAHMU operates in three sequential phases. Phase 1 performs top-down subdivision
 <p align="center">
   <img src="methodologies/CAHMU_Algorithm.png" width="780"/>
 </p>
-<p align="center"><em>Figure 1 — CAHMU algorithm summary: Phase 1 top-down subdivision gated by objectness, complexity, and child appearance diversity; Phase 2 vacuum-filling for orphan masks & objectness-priority overlap resolution.</em></p>
+<p align="center"><em>Figure 1 — CAHMU algorithm summary: Phase 1 — top-down subdivision gated by objectness, complexity, and child appearance diversity; Phase 2 — vacuum-filling for orphan masks & objectness-priority overlap resolution.</em></p>
 
 ### Step-by-step
 
@@ -336,12 +336,12 @@ Work 2 augments the original [Gaussian Grouping](https://arxiv.org/abs/2312.0073
 
 ### Feature Optimisation Architecture (Works 2 & 3)
 
-The three modifications are stacked sequentially on top of the original backbone. The same architecture is shared between Works 2 (3DGS backbone) and 3 (SVRaster backbone), with the Gaussian Semantic Tracing (GST) loss replaced by the analogous Voxel Semantic Tracing (VST) loss in Work 3.
+The three modifications are stacked sequentially on top of the original backbone. The same architecture is shared between Works 2 (Gaussian-Grouping backbone) and 3 (SVRaster backbone), with the Gaussian Semantic Tracing (GST) loss replaced by the analogous Voxel Semantic Tracing (VST) loss in Work 3.
 
 <p align="center">
   <img src="methodologies/Works_2_3_Architecture.png" width="780"/>
 </p>
-<p align="center"><em>Figure 2 — Feature optimisation architecture shared by Works 2 and 3. Preprocessing supplies cropped black-background renders and mask supervision. Modification 1 adds Multi-view Semantic Tracing with Probabilistic KL Distillation (ℒ<sub>KL–ST</sub>). Modification 2 adds 2D & 3D Contrastive Learning. Modification 3 adds 2D & 3D Hypersphere Regularisation. For Work 3, the 3DGS backbone is replaced by SVRaster and GST is correspondingly replaced by VST; all other components are unchanged.</em></p>
+<p align="center"><em>Figure 2 — Feature optimisation architecture shared by Works 2 and 3. Preprocessing supplies cropped black-background render and original mask supervision. Modification 1 adds Multi-view Semantic Tracing with Probabilistic KL Distillation (ℒ<sub>KL–ST</sub>). Modification 2 adds 2D & 3D Contrastive Learning. Modification 3 adds 2D & 3D Hypersphere Regularisation. For Work 3, the Gaussian-Grouping backbone is replaced by SVRaster and GST is correspondingly replaced by VST; all other components are unchanged.</em></p>
 
 ### Installation
 
@@ -460,7 +460,7 @@ bash script/train_render_eval.sh ramen output_crop_sam_hq_all crop_object_mask_s
 | Parameter | Value |
 |-----------|-------|
 | Iterations | 30,000 |
-| Optimizer | Adam (default 3DGS schedule) |
+| Optimizer | Adam (default Gaussian-Grouping schedule) |
 | Identity feature classes | 256 |
 | λ_GST | 50 |
 | λ²ᵈ_cont | 5×10⁻⁴ |
