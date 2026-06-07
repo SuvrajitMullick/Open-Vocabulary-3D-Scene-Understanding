@@ -42,10 +42,10 @@ The thesis introduces four interconnected contributions:
 
 | # | Work | Description |
 |---|------|-------------|
-| **1** | **CAHMU** | A training-free, CLIP-driven hierarchical mask unifier that resolves multi-level SAM granularity conflicts |
-| **2** | **Improved Gaussian Grouping** | Augments 3DGS identity encoding with contrastive, hypersphere, and Gaussian Semantic Tracing (GST) losses |
-| **3** | **Segmentation over SVRaster** | First end-to-end object-feature learning over Sparse Voxel Rasterization, with contrastive, hypersphere, and Voxel Semantic Tracing (VST) losses |
-| **4** | **Enhanced OpenGaussian** | Systematic mask-type and scene-cropping ablation of OpenGaussian with CAHMU-refined CLIP supervision |
+| **1** | **CAHMU** | A training-free, [CLIP](https://arxiv.org/abs/2103.00020) [[10]](#references)-driven hierarchical mask unifier that resolves multi-level [SAM](https://arxiv.org/abs/2304.02643) [[7]](#references) granularity conflicts |
+| **2** | **Improved Gaussian Grouping** | Augments [3DGS](https://arxiv.org/abs/2308.04079) [[9]](#references) identity encoding with contrastive, hypersphere, and GST losses, built on [Gaussian Grouping](https://arxiv.org/abs/2312.00732) [[1]](#references) |
+| **3** | **Segmentation over SVRaster** | First end-to-end object-feature learning over [SVRaster](https://arxiv.org/abs/2409.12512) [[3]](#references), with contrastive, hypersphere, and Voxel Semantic Tracing (VST) losses |
+| **4** | **Enhanced OpenGaussian** | Systematic mask-type and scene-cropping ablation of [OpenGaussian](https://arxiv.org/abs/2406.02058) [[2]](#references) with CAHMU-refined [CLIP](https://arxiv.org/abs/2103.00020) [[10]](#references) supervision |
 
 ---
 
@@ -170,13 +170,19 @@ flowchart TD
 
 ## Datasets and Evaluation
 
-All experiments are conducted exclusively on the **LeRF-OVS** dataset, comprising three real-world tabletop scenes captured with the Polycam application: `figurines`, `teatime`, and `ramen`.
+All experiments are conducted exclusively on the **LeRF-OVS** dataset from [LERF](https://arxiv.org/abs/2303.09553) [[11]](#references) (Language Embedded Radiance Fields), comprising three real-world tabletop scenes captured with the Polycam application: `figurines`, `teatime`, and `ramen`.
 
 ### Dataset Download
 
-We have expanded upon the original LeRF-OVS collection and also provide the corresponding COLMAP data sourced from the [LangSplat](https://github.com/minghanqin/LangSplat) repository. All scenes used in this thesis — `figurines`, `ramen`, and `teatime` — are included.
+We have expanded upon the original LeRF-OVS collection and also provide the corresponding COLMAP data sourced from the [LangSplat](https://arxiv.org/abs/2312.16084) [[5]](#references) repository. All scenes used in this thesis — `figurines`, `ramen`, and `teatime` — are included.
 
 > 📦 **[Download Expanded LERF Dataset and COLMAP Data](https://drive.google.com/file/d/1QF1Po5p5DwTjFHu6tnTeYs_G0egMVmHt/view?usp=sharing)**
+
+If you prefer to skip the preprocessing steps entirely, fully preprocessed datasets are also available for direct download:
+
+> 🗂️ **[Download Preprocessed Dataset — Works 2 & 3](https://drive.google.com/file/d/1pnp4LDTLRCmQgm3-XNj7dpqm4nTURihA/view?usp=sharing)** — includes scene images, COLMAP data, and all prepared SAM mask folders for `modified-gaussian-grouping/data/` (reused by `modified-svraster/data/`)
+
+> 🗂️ **[Download Preprocessed Dataset — Work 4](https://drive.google.com/file/d/18ymU_tpFczdMf0N4k-59BG5H5erGAIbF/view?usp=sharing)** — includes scene images, COLMAP data, and all generated SAM mask variants for `modified-OpenGaussian/data/lerf_ovs/`
 
 After downloading, extract the archive and place the scenes in the appropriate directories for each work:
 
@@ -194,11 +200,14 @@ modified-OpenGaussian/data/lerf_ovs/teatime/
 
 ### Scene Overview
 
-| Scene | Object Density | Notable Objects |
-|-------|---------------|-----------------|
-| `ramen` | Medium | nori, sake cup, kamaboko, corn, spoon, egg, chopsticks, wavy noodles, bowl, napkin, etc. |
-| `figurines` | High | jake, pikachu, rubber duck, pirate hat, waldo, tesla door handle, porcelain hand, etc. |
-| `teatime` | Low–Medium | sheep, stuffed bear, coffee mug, cookies, apple, yellow pouf, dall-e brand, etc. |
+| Scene | Training Frames | Object Density | Notable Objects |
+|-------|----------------|---------------|-----------------|
+| `ramen` | 1–131 (all) | Medium | nori, sake cup, kamaboko, corn, spoon, egg, chopsticks, wavy noodles, bowl, napkin, etc. |
+| `figurines` | **1–250** ⚠️ | High | jake, pikachu, rubber duck, pirate hat, waldo, tesla door handle, porcelain hand, etc. |
+| `teatime` | 1–180 (all) | Low–Medium | sheep, stuffed bear, coffee mug, cookies, apple, yellow pouf, dall-e brand, etc. |
+
+> ⚠️ **Figurines frame limit — use frames 1–250 only (all Works).**
+> [DEVA](https://arxiv.org/abs/2309.03903) [[6]](#references) (Tracking Anything with Decoupled Video Segmentation, [[code]](https://github.com/hkchengrex/Tracking-Anything-with-DEVA)) is used in the preprocessing pipeline of Works 2 & 3 to assign multi-view-consistent object identities to SAM masks (same object → same ID across views). DEVA encodes these IDs as `short` integers, which hard-caps the number of simultaneously trackable identities at **256**. The `figurines` scene spans frames 1–301; processing all 301 frames exhausts this capacity mid-sequence, corrupting identity maps in later frames across every SAM mask configuration. **Restrict the `figurines` training set to frames 1–250 for all Works.** The `ramen` (1–131) and `teatime` (1–180) scenes fall within the safe limit and are used in their entirety.
 
 ### Fixed Evaluation Frames and Queries
 
@@ -237,7 +246,7 @@ All three codebases share the following common requirements:
 
 ## Work 1 — CAHMU: Context-Aware Hierarchical Mask Unifier
 
-**CAHMU** is a **training-free** preprocessing module. It resolves the granularity conflicts in multi-level SAM outputs using CLIP-driven objectness scoring, producing a clean, instance-discriminative single-level mask set. These unified masks serve as supervision for Works 2 and 4.
+**CAHMU** is a **training-free** preprocessing module. It resolves the granularity conflicts in multi-level [SAM](https://arxiv.org/abs/2304.02643) [[7]](#references) outputs using [CLIP](https://arxiv.org/abs/2103.00020) [[10]](#references)-driven objectness scoring, producing a clean, instance-discriminative single-level mask set. These unified masks serve as supervision for Works 2 and 4.
 
 Work 1 mask generation is embedded inside the **OpenGaussian runner** (`runner_of_OpenGaussian.sh`). The relevant script is `preprocess_sam_u.py`, which runs the full CAHMU-unified SAM pipeline.
 
@@ -306,7 +315,7 @@ python masks_visualizer.py --dataset_path data/lerf_ovs/ramen --crop --variant s
 
 ## Work 2 — Improved Gaussian Grouping
 
-Work 2 augments the original [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping) framework with three novel loss terms applied over a 3DGS backbone:
+Work 2 augments the original [Gaussian Grouping](https://arxiv.org/abs/2312.00732) [[1]](#references) \[[code](https://github.com/lkeab/gaussian-grouping)\] framework with three novel loss terms applied over a [3D Gaussian Splatting (3DGS)](https://arxiv.org/abs/2308.04079) [[9]](#references) backbone:
 
 - **Cont** — 2D + 3D contrastive loss
 - **Hyp** — 2D + 3D hypersphere normalisation
@@ -331,10 +340,10 @@ export TORCH_CUDA_ARCH_LIST="8.0;8.6"
 pip install --no-build-isolation ./submodules/diff-gaussian-rasterization
 pip install --no-build-isolation ./submodules/simple-knn
 pip install --no-build-isolation ./submodules/fused-ssim
-pip install --no-build-isolation ./submodules/GroundingDINO
-pip install --no-build-isolation ./submodules/deva
-pip install --no-build-isolation ./submodules/sam-hq
-pip install --no-build-isolation ./submodules/depth-anything-v2
+pip install --no-build-isolation ./submodules/GroundingDINO      # GroundingDINO [12]
+pip install --no-build-isolation ./submodules/deva               # DEVA [6]
+pip install --no-build-isolation ./submodules/sam-hq             # SAM-HQ [8]
+pip install --no-build-isolation ./submodules/depth-anything-v2  # Depth Anything V2 [13]
 
 # Download segmentation model checkpoints into checkpoints/
 bash script/download_models.sh
@@ -362,7 +371,7 @@ python json_to_masks.py --data_dir data/label/teatime
 
 ### Step 2 — Prepare pseudo-labels (mask supervision)
 
-Six mask variants are prepared per scene by crossing three mask types × two image sources:
+Six mask variants are prepared per scene by crossing three mask types × two image sources. Masks are generated using [SAM](https://arxiv.org/abs/2304.02643) [[7]](#references) (default and CAHMU-unified) and [SAM-HQ](https://arxiv.org/abs/2306.01567) [[8]](#references):
 
 ```bash
 # ramen
@@ -445,7 +454,7 @@ bash script/train_render_eval.sh ramen output_crop_sam_hq_all crop_object_mask_s
 
 ## Work 3 — Segmentation over Sparse Voxel Rasterization (SVRaster)
 
-Work 3 introduces the **first end-to-end object-feature learning pipeline over** [SVRaster](https://github.com/theialab/svraster), requiring new per-voxel object features and semantic-tracing weights to be added directly to the CUDA rasteriser. The novel **Voxel Semantic Tracing (VST)** loss provides soft probabilistic KL distillation of multi-view semantic consistency.
+Work 3 introduces the **first end-to-end object-feature learning pipeline over** [SVRaster](https://arxiv.org/abs/2409.12512) [[3]](#references) \[[code](https://github.com/theialab/svraster)\], requiring new per-voxel object features and semantic-tracing weights to be added directly to the CUDA rasteriser. The novel **Voxel Semantic Tracing (VST)** loss provides soft probabilistic KL distillation of multi-view semantic consistency.
 
 **Best configuration: Exp 13** — HQ-SAM on cropped renders + VST loss → **45.53% mean mIoU**
 
@@ -465,8 +474,8 @@ export TORCH_CUDA_ARCH_LIST="8.0;8.6"
 
 pip install --no-build-isolation ./cuda/
 pip install --no-build-isolation ./fused-ssim/
-pip install --no-build-isolation ./GroundingDINO/
-pip install --no-build-isolation ./sam-hq/
+pip install --no-build-isolation ./GroundingDINO/  # GroundingDINO [12]
+pip install --no-build-isolation ./sam-hq/         # SAM-HQ [8]
 ```
 
 ### GroundingDINO Config File
@@ -603,7 +612,7 @@ bash scripts/train_render_eval.sh ramen output_crop_sam_hq_all  crop_object_mask
 
 ## Work 4 — Enhanced OpenGaussian
 
-Work 4 builds on [OpenGaussian](https://github.com/muedavid/OpenGaussian) with a systematic evaluation of mask supervision quality and scene-cropping strategies for language-guided 3D segmentation. The two-phase training schedule (geometry + colour-features first, then language/object features) is retained from the original.
+Work 4 builds on [OpenGaussian](https://arxiv.org/abs/2406.02058) [[2]](#references) \[[code](https://github.com/muedavid/OpenGaussian)\] with a systematic evaluation of mask supervision quality and scene-cropping strategies for language-guided 3D segmentation. The two-phase training schedule (geometry + colour-features first, then language/object features) is retained from the original.
 
 **Best configuration: Exp 7** — CAHMU-unified SAM on original images, no cropping → **59.02% mean mIoU** (new state-of-the-art on LeRF-OVS)
 
@@ -625,8 +634,8 @@ export TORCH_CUDA_ARCH_LIST="8.0;8.6"
 
 pip install --no-build-isolation submodules/ashawkey-diff-gaussian-rasterization
 pip install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git"
-pip install --no-build-isolation submodules/sam-langsplat
-pip install --no-build-isolation submodules/sam-hq
+pip install --no-build-isolation submodules/sam-langsplat  # SAM [7] variant used by LangSplat [5]
+pip install --no-build-isolation submodules/sam-hq         # SAM-HQ [8]
 
 cd assets && unzip text_features.zip && cd ..
 ```
@@ -837,12 +846,12 @@ All experiments are evaluated using a unified evaluation script reporting six co
 
 | Method | Mean mIoU ↑ | Mean mBIoU ↑ | IoU Acc@.25 ↑ | IoU Acc@.5 ↑ |
 |--------|:-----------:|:------------:|:-------------:|:------------:|
-| LangSplat | 10.45 | 10.05 | 14.95 | 6.50 |
-| LEGaussians | 17.85 | 16.90 | 26.65 | 11.45 |
-| Gaussian Grouping | 36.04 | 33.40 | 44.46 | 36.65 |
+| [LangSplat](https://arxiv.org/abs/2312.16084) [[5]](#references) | 10.45 | 10.05 | 14.95 | 6.50 |
+| [LEGaussians](https://arxiv.org/abs/2311.18482) [[4]](#references) | 17.85 | 16.90 | 26.65 | 11.45 |
+| [Gaussian Grouping](https://arxiv.org/abs/2312.00732) [[1]](#references) | 36.04 | 33.40 | 44.46 | 36.65 |
 | **Work 2 (Ours)** | 41.72 | 38.09 | 50.69 | 43.35 |
 | **Work 3 (Ours)** | 45.53 | 42.65 | 54.81 | 47.18 |
-| OpenGaussian | 53.77 | 49.89 | 69.54 | 59.01 |
+| [OpenGaussian](https://arxiv.org/abs/2406.02058) [[2]](#references) | 53.77 | 49.89 | 69.54 | 59.01 |
 | **Work 4 (Ours) ★** | **59.02** | **54.69** | **77.16** | **68.19** |
 
 ★ New state-of-the-art on LeRF-OVS. Work 4 exceeds the previous best (OpenGaussian) by **+5.25% mean mIoU** and **+9.18% IoU Acc@0.5**.
@@ -856,6 +865,36 @@ All experiments are evaluated using a unified evaluation script reporting six co
 - **In-training scene cropping (Crop@30k) is consistently detrimental** for OpenGaussian on LeRF tabletop scenes, degrading mean mIoU by ≈5–7%.
 - Auxiliary losses (Cont, Hyp, GST/VST) produce effects within ≈1% mIoU on any baseline; **VST achieves the best mBIoU and IoU Acc@0.25** on Work 3's HQ-SAM voxel baseline.
 - Objectness-based cluster pruning and two-stage re-ranking (Work 4) are counter-productive: they remove genuine foreground clusters or demote the correct cosine top-1 cluster.
+
+---
+
+## References
+
+1. Ye, M. et al. **Gaussian Grouping: Segment and Edit Anything in 3D Scenes.** ECCV 2024. [[arXiv]](https://arxiv.org/abs/2312.00732) [[code]](https://github.com/lkeab/gaussian-grouping)
+
+2. Wu, J. et al. **OpenGaussian: Towards Point-Level 3D Gaussian-based Open Vocabulary Understanding.** NeurIPS 2024. [[arXiv]](https://arxiv.org/abs/2406.02058) [[code]](https://github.com/muedavid/OpenGaussian)
+
+3. Fang, Y. et al. **Sparse Voxels Rasterization: Real-time High-fidelity Radiance Field Rendering.** arXiv 2024. [[arXiv]](https://arxiv.org/abs/2409.12512) [[code]](https://github.com/theialab/svraster)
+
+4. Shi, J. et al. **Language Embedded 3D Gaussians for Open-Vocabulary Scene Understanding.** CVPR 2024. [[arXiv]](https://arxiv.org/abs/2311.18482)
+
+5. Qin, M. et al. **LangSplat: 3D Language Gaussian Splatting.** CVPR 2024. [[arXiv]](https://arxiv.org/abs/2312.16084) [[code]](https://github.com/minghanqin/LangSplat)
+
+6. Cheng, H.-K. et al. **Tracking Anything with Decoupled Video Segmentation.** ICCV 2023. [[arXiv]](https://arxiv.org/abs/2309.03903) [[code]](https://github.com/hkchengrex/Tracking-Anything-with-DEVA)
+
+7. Kirillov, A. et al. **Segment Anything.** ICCV 2023. [[arXiv]](https://arxiv.org/abs/2304.02643) [[code]](https://github.com/facebookresearch/segment-anything)
+
+8. He, L. et al. **Segment Anything in High Quality.** NeurIPS 2023. [[arXiv]](https://arxiv.org/abs/2306.01567) [[code]](https://github.com/SysCV/sam-hq)
+
+9. Kerbl, B. et al. **3D Gaussian Splatting for Real-Time Radiance Field Rendering.** SIGGRAPH 2023. [[arXiv]](https://arxiv.org/abs/2308.04079) [[code]](https://github.com/graphdeco-inria/gaussian-splatting)
+
+10. Radford, A. et al. **Learning Transferable Visual Models From Natural Language Supervision (CLIP).** ICML 2021. [[arXiv]](https://arxiv.org/abs/2103.00020)
+
+11. Kerr, J. et al. **LERF: Language Embedded Radiance Fields.** ICCV 2023. [[arXiv]](https://arxiv.org/abs/2303.09553) [[code]](https://github.com/kerrj/lerf)
+
+12. Liu, S. et al. **Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection.** ECCV 2024. [[arXiv]](https://arxiv.org/abs/2303.05499) [[code]](https://github.com/IDEA-Research/GroundingDINO)
+
+13. Yang, L. et al. **Depth Anything V2.** NeurIPS 2024. [[arXiv]](https://arxiv.org/abs/2406.09414) [[code]](https://github.com/DepthAnything/Depth-Anything-V2)
 
 ---
 
