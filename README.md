@@ -254,7 +254,7 @@ Work 1 mask generation is embedded inside the **OpenGaussian runner** (`runner_o
 
 ### Algorithm Overview
 
-CAHMU operates in three sequential phases. Phase 1 performs top-down subdivision: per-mask objectness *o(m)*, complexity *κ(m)*, and HS-histogram appearance *h(m)* are extracted; large-level SAM masks are selectively replaced by their medium-level children when child appearance diversity satisfies a dynamic threshold. Phase 2 recovers medium- and small-level orphan masks that occupy uncovered foreground regions (vacuum overlap ratio *r(m) < 0.5*). Phase 3 resolves residual spatial overlaps by painting in ascending objectness order, so higher-objectness masks take unconditional spatial priority.
+CAHMU operates in three sequential phases. Phase 1 performs top-down subdivision: per-mask objectness *o(m)*, complexity *κ(m)*, and HS-histogram appearance *h(m)* are extracted; large-level SAM masks are selectively replaced by their medium-level children when child appearance diversity satisfies a dynamic threshold. Phase 2 recovers medium-level and small-level orphan masks that occupy uncovered foreground regions (vacuum overlap ratio *r(m) < 0.5*) &  resolves residual spatial overlaps by painting in ascending objectness order, so higher-objectness masks take unconditional spatial priority.
 
 <p align="center">
   <img src="methodologies/CAHMU_Algorithm.png" width="780"/>
