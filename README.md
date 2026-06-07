@@ -902,7 +902,7 @@ The following charts summarise the key per-scene and mean mIoU comparisons from 
 </p>
 <p align="center"><em>Figure 4 — Work 2 mask-quality ablation: Default SAM (Exp 1) vs. CAHMU-Unified SAM (Exp 3). All other training settings are held fixed. Mean mIoU: 36.04% → 41.12% (+5.08%).</em></p>
 
-**Loss-function ablation:** Among the three novel loss terms, Hypersphere normalisation (Exp 8) provides the most consistent single-term gain over the CAHMU-unified baseline (+0.60% mean mIoU, +1.65% on IoU Acc@0.5). The overall margin is modest, confirming that supervision quality dominates over loss design on this backbone.
+**Loss-function ablation:** Among the three novel loss terms, Hypersphere Normalisation (Exp 8) provides the most consistent single-term gain over the CAHMU-unified baseline (+0.60% mean mIoU, +1.65% on IoU Acc@0.5). The overall margin is modest, confirming that supervision quality dominates over loss design on this backbone.
 
 <p align="center">
   <img src="experiments/Work2_Exp3_vs_Exp8.png" width="640"/>
@@ -913,7 +913,7 @@ The following charts summarise the key per-scene and mean mIoU comparisons from 
 
 #### Work 3 — SVRaster Ablations
 
-**Mask-quality ablation:** The SVRaster voxel backbone exhibits a strikingly different mask preference from the Gaussian backbone. HQ-SAM on cropped renders (Exp 6) dominates all configurations by a clear margin, outperforming Default SAM (Exp 1) by +5.39% mean mIoU. The voxel rasteriser's explicit depth-ordering amplifies boundary precision, making HQ-SAM the most effective supervision source here.
+**Mask-quality ablation:** The SVRaster backbone exhibits a strikingly different mask preference from the Gaussian-Grouping backbone. HQ-SAM on cropped renders (Exp 6) dominates all configurations by a clear margin, outperforming Default SAM (Exp 1) by +5.39% mean mIoU. The voxel rasteriser's explicit depth-ordering amplifies boundary precision, making HQ-SAM the most effective supervision source here.
 
 <p align="center">
   <img src="experiments/Work3_Exp1_vs_Exp6.png" width="640"/>
