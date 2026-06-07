@@ -136,6 +136,8 @@ Open-Vocabulary-3D-Scene-Understanding/
 │   ├── environment.yml
 │   └── runner_of_OpenGaussian.sh
 │
+├── methodologies/                            ← Methodologies Figures for this README
+├── experiments/                              ← Experiments Figures for this README
 └── README.md
 ```
 
@@ -250,6 +252,15 @@ All three codebases share the following common requirements:
 
 Work 1 mask generation is embedded inside the **OpenGaussian runner** (`runner_of_OpenGaussian.sh`). The relevant script is `preprocess_sam_u.py`, which runs the full CAHMU-unified SAM pipeline.
 
+### Algorithm Overview
+
+CAHMU operates in three sequential phases. Phase 1 performs top-down subdivision: per-mask objectness *o(m)*, complexity *κ(m)*, and HS-histogram appearance *h(m)* are extracted; large-level SAM masks are selectively replaced by their medium-level children when child appearance diversity satisfies a dynamic threshold. Phase 2 recovers medium- and small-level orphan masks that occupy uncovered foreground regions (vacuum overlap ratio *r(m) < 0.5*). Phase 3 resolves residual spatial overlaps by painting in ascending objectness order, so higher-objectness masks take unconditional spatial priority.
+
+<p align="center">
+  <img src="methodologies/CAHMU_Algorithm.png" width="780"/>
+</p>
+<p align="center"><em>Figure 1 — CAHMU algorithm summary: Phase 1 top-down subdivision gated by objectness, complexity, and child appearance diversity; Phase 2 vacuum-filling for orphan masks; Phase 3 objectness-priority overlap resolution.</em></p>
+
 ### Step-by-step
 
 Navigate into `modified-OpenGaussian/` and run the following (also covered by `runner_of_OpenGaussian.sh`):
@@ -298,7 +309,7 @@ python masks_visualizer.py --dataset_path data/lerf_ovs/ramen --crop --variant s
 
 > The `--crop` flag generates masks from black-background cropped renders (used in crop-setting ablations for Work 4).
 
-**CAHMU key thresholds** (held fixed across all experiments):
+### CAHMU Key Thresholds
 
 | Parameter | Value |
 |-----------|-------|
@@ -317,11 +328,20 @@ python masks_visualizer.py --dataset_path data/lerf_ovs/ramen --crop --variant s
 
 Work 2 augments the original [Gaussian Grouping](https://arxiv.org/abs/2312.00732) [[1]](#references) \[[code](https://github.com/lkeab/gaussian-grouping)\] framework with three novel loss terms applied over a [3D Gaussian Splatting (3DGS)](https://arxiv.org/abs/2308.04079) [[9]](#references) backbone:
 
-- **Cont** — 2D + 3D contrastive loss
-- **Hyp** — 2D + 3D hypersphere normalisation
-- **GST** — KL distillation via Gaussian Semantic Tracing
+- **Cont** — 2D + 3D contrastive loss: enforces intra-mask compactness and inter-mask separation in feature space
+- **Hyp** — 2D + 3D hypersphere normalisation: prevents large feature-norm dominance during alpha-compositing
+- **GST** — KL distillation via Gaussian Semantic Tracing: replaces hard multi-view labels with soft probabilistic KL distillation
 
 **Best configuration: Exp 8** — CAHMU-unified masks on original images + Hyp loss → **41.72% mean mIoU**
+
+### Feature Optimisation Architecture (Works 2 & 3)
+
+The three modifications are stacked sequentially on top of the original backbone. The same architecture is shared between Works 2 (3DGS backbone) and 3 (SVRaster backbone), with the Gaussian Semantic Tracing (GST) loss replaced by the analogous Voxel Semantic Tracing (VST) loss in Work 3.
+
+<p align="center">
+  <img src="methodologies/Works_2_3_Architecture.png" width="780"/>
+</p>
+<p align="center"><em>Figure 2 — Feature optimisation architecture shared by Works 2 and 3. Preprocessing supplies cropped black-background renders and mask supervision. Modification 1 adds Multi-view Semantic Tracing with Probabilistic KL Distillation (ℒ<sub>KL–ST</sub>). Modification 2 adds 2D & 3D Contrastive Learning. Modification 3 adds 2D & 3D Hypersphere Regularisation. For Work 3, the 3DGS backbone is replaced by SVRaster and GST is correspondingly replaced by VST; all other components are unchanged.</em></p>
 
 ### Installation
 
@@ -435,7 +455,7 @@ bash script/train_render_eval.sh ramen output_crop_sam_hq_all crop_object_mask_s
 
 > Repeat all `train_render_eval.sh` calls above for `figurines` and `teatime` by substituting the scene name. See `runner_of_gaussian-grouping.sh` for the complete command listing.
 
-**Training hyperparameters:**
+### Training Hyperparameters
 
 | Parameter | Value |
 |-----------|-------|
@@ -454,7 +474,7 @@ bash script/train_render_eval.sh ramen output_crop_sam_hq_all crop_object_mask_s
 
 ## Work 3 — Segmentation over Sparse Voxel Rasterization (SVRaster)
 
-Work 3 introduces the **first end-to-end object-feature learning pipeline over** [SVRaster](https://arxiv.org/abs/2409.12512) [[3]](#references) \[[code](https://github.com/theialab/svraster)\], requiring new per-voxel object features and semantic-tracing weights to be added directly to the CUDA rasteriser. The novel **Voxel Semantic Tracing (VST)** loss provides soft probabilistic KL distillation of multi-view semantic consistency.
+Work 3 introduces the **first end-to-end object-feature learning pipeline over** [SVRaster](https://arxiv.org/abs/2409.12512) [[3]](#references) \[[code](https://github.com/theialab/svraster)\], requiring new per-voxel object features and semantic-tracing weights to be added directly to the CUDA rasteriser. The novel **Voxel Semantic Tracing (VST)** loss provides soft probabilistic KL distillation of multi-view semantic consistency. The feature optimisation architecture is shared with Work 2 — see [Figure 2](#feature-optimisation-architecture-works-2--3) above.
 
 **Best configuration: Exp 13** — HQ-SAM on cropped renders + VST loss → **45.53% mean mIoU**
 
@@ -586,15 +606,15 @@ bash scripts/train_render_eval.sh ramen output_crop_sam_hq_all  crop_object_mask
 
 > Repeat all commands with `figurines` (bound scale `0.025`) and `teatime` (bound scale `1`). See `runner_of_svraster.sh` for the full command listing.
 
-**Training hyperparameters:**
+### Training Hyperparameters
 
 | Parameter | Value |
 |-----------|-------|
 | Iterations | 20,000 |
-| Voxel pruning until | **15,000 iters** (vst / all — for Training Exps 9, 10, 13, 14) |
-| Voxel pruning until | 18,000 iters (normal / cos / hyp — for all other Training Exps) |
-| Voxel subdivision until | **12,000 iters** (vst / all — for Training Exps 9, 10, 13, 14) |
-| Voxel subdivision until | 15,000 iters (normal / cos / hyp — for all other Training Exps) |
+| Voxel pruning until | **15,000 iters** (vst / all — Exps 9, 10, 13, 14) |
+| Voxel pruning until | 18,000 iters (normal / cos / hyp — all other Exps) |
+| Voxel subdivision until | **12,000 iters** (vst / all — Exps 9, 10, 13, 14) |
+| Voxel subdivision until | 15,000 iters (normal / cos / hyp — all other Exps) |
 | num_objects (bits per dim) | 16 |
 | num_classes | 256 |
 | sh_objs_lr | 0.010 |
@@ -612,9 +632,20 @@ bash scripts/train_render_eval.sh ramen output_crop_sam_hq_all  crop_object_mask
 
 ## Work 4 — Enhanced OpenGaussian
 
-Work 4 builds on [OpenGaussian](https://arxiv.org/abs/2406.02058) [[2]](#references) \[[code](https://github.com/muedavid/OpenGaussian)\] with a systematic evaluation of mask supervision quality and scene-cropping strategies for language-guided 3D segmentation. The two-phase training schedule (geometry + colour-features first, then language/object features) is retained from the original.
+Work 4 builds on [OpenGaussian](https://arxiv.org/abs/2406.02058) [[2]](#references) \[[code](https://github.com/muedavid/OpenGaussian)\] with a systematic evaluation of mask supervision quality and scene-cropping strategies for language-guided 3D segmentation. The two-phase training schedule (geometry + colour-features first, then language/object features) is retained from the original. Three candidate modifications are evaluated:
+
+1. **Modified Preprocessing** — CAHMU-unified masks (Exp 7) replace large-level SAM masks as the LangSplat CLIP feature source. *Adopted.*
+2. **Objectness-based Cluster Pruning** — Periodically scores and prunes low-objectness coarse clusters during Stage 2.1. *Found detrimental (−19.2% mIoU); baseline retained.*
+3. **Two-Stage Text-Query Re-ranking** — Top-10 cosine shortlist re-ranked by query-conditioned rendered objectness; top-5 retained. *Found detrimental (−29.4% mIoU); single-pass cosine retained.*
 
 **Best configuration: Exp 7** — CAHMU-unified SAM on original images, no cropping → **59.02% mean mIoU** (new state-of-the-art on LeRF-OVS)
+
+### Pipeline Overview
+
+<p align="center">
+  <img src="methodologies/Work_4_Pipeline.png" width="780"/>
+</p>
+<p align="center"><em>Figure 3 — Enhanced OpenGaussian pipeline for Work 4. Steps shown in green are adopted into the final configuration; steps shown in red were evaluated but found detrimental and reverted to the baseline. CAHMU-unified preprocessing (Exp 7) is the only modification retained in the best configuration.</em></p>
 
 ### Installation
 
@@ -664,8 +695,6 @@ modified-OpenGaussian/ckpts/
 ```
 
 ### Step 1 — Generate all mask variants
-
-Run the following preprocessing scripts to produce all six mask-type × crop-setting combinations for each scene:
 
 ```bash
 # ramen
@@ -801,7 +830,7 @@ python scripts/eval_lerf_mask_new.py --out_dir output_crop_sam_u_all/ramen --spl
 
 Inference re-ranking (two-stage: top-10 cosine → top-5 objectness re-rank) is invoked via `render_lerf_by_text.py` and `eval_lerf_mask_new.py` on top of each training configuration. Refer to the commented-out commands at the bottom of `runner_of_OpenGaussian.sh` for the full invocation sequence.
 
-**Training hyperparameters:**
+### Training Hyperparameters
 
 | Parameter | Value |
 |-----------|-------|
@@ -855,6 +884,75 @@ All experiments are evaluated using a unified evaluation script reporting six co
 | **Work 4 (Ours) ★** | **59.02** | **54.69** | **77.16** | **68.19** |
 
 ★ New state-of-the-art on LeRF-OVS. Work 4 exceeds the previous best (OpenGaussian) by **+5.25% mean mIoU** and **+9.18% IoU Acc@0.5**.
+
+---
+
+### Ablation Results
+
+The following charts summarise the key per-scene and mean mIoU comparisons from the ablation studies. Each chart isolates a single design choice — mask type, loss term, training modification, or inference strategy — to make the contribution of each component directly legible.
+
+---
+
+#### Work 2 — Gaussian Grouping Ablations
+
+**Mask-quality ablation:** CAHMU-Unified SAM masks (Exp 3) consistently outperform Default-level SAM masks (Exp 1) across all three scenes, with the largest gain on Ramen (+9.27%). The +5.08% mean mIoU improvement confirms that resolving multi-level SAM granularity conflicts is the primary performance driver on the Gaussian backbone.
+
+<p align="center">
+  <img src="experiments/Work2_Exp1_vs_Exp3.png" width="640"/>
+</p>
+<p align="center"><em>Figure 4 — Work 2 mask-quality ablation: Default SAM (Exp 1) vs. CAHMU-Unified SAM (Exp 3). All other training settings are held fixed. Mean mIoU: 36.04% → 41.12% (+5.08%).</em></p>
+
+**Loss-function ablation:** Among the three novel loss terms, Hypersphere normalisation (Exp 8) provides the most consistent single-term gain over the CAHMU-unified baseline (+0.60% mean mIoU, +1.65% on IoU Acc@0.5). The overall margin is modest, confirming that supervision quality dominates over loss design on this backbone.
+
+<p align="center">
+  <img src="experiments/Work2_Exp3_vs_Exp8.png" width="640"/>
+</p>
+<p align="center"><em>Figure 5 — Work 2 loss-function ablation: Exp 3 baseline vs. Exp 8 (+Hyp). Hypersphere normalisation yields consistent per-scene improvements. Mean mIoU: 41.12% → 41.72% (+0.60%).</em></p>
+
+---
+
+#### Work 3 — SVRaster Ablations
+
+**Mask-quality ablation:** The SVRaster voxel backbone exhibits a strikingly different mask preference from the Gaussian backbone. HQ-SAM on cropped renders (Exp 6) dominates all configurations by a clear margin, outperforming Default SAM (Exp 1) by +5.39% mean mIoU. The voxel rasteriser's explicit depth-ordering amplifies boundary precision, making HQ-SAM the most effective supervision source here.
+
+<p align="center">
+  <img src="experiments/Work3_Exp1_vs_Exp6.png" width="640"/>
+</p>
+<p align="center"><em>Figure 6 — Work 3 mask-quality ablation: Default SAM (Exp 1) vs. HQ-SAM on cropped renders (Exp 6). Mean mIoU: 39.76% → 45.15% (+5.39%). The gain is largest on Ramen (+12.01%).</em></p>
+
+**Loss-function ablation:** On the HQ-SAM baseline, VST (Exp 13) achieves the best mean mBIoU (42.65%) and IoU Acc@0.25 (54.81%) of any single-term configuration, while being effectively tied with Contrastive loss (Exp 11) on mean mIoU. As the primary methodological novelty of Work 3, VST is adopted as the final configuration.
+
+<p align="center">
+  <img src="experiments/Work3_Exp6_vs_Exp_13.png" width="640"/>
+</p>
+<p align="center"><em>Figure 7 — Work 3 loss-function ablation: Exp 6 (HQ-SAM Cropped baseline) vs. Exp 13 (+VST only). VST improves Teatime by +2.64% and Ramen by +1.35% while regressing slightly on Figurines. Mean mIoU: 45.15% → 45.53% (+0.38%).</em></p>
+
+---
+
+#### Work 4 — OpenGaussian Ablations
+
+**Mask-quality ablation:** CAHMU-Unified SAM (Exp 7) is the clear winner across all three mask families, delivering +5.25% over the Large SAM baseline (Exp 1). The gain is most pronounced on Ramen (+16.62%), where CAHMU's orphan vacuum-filling recovers small foreground objects absent from large-level SAM. In-training scene cropping (Crop@30k) consistently hurts across all mask types, establishing a clean negative result for that design choice.
+
+<p align="center">
+  <img src="experiments/Work4_Exp1_vs_Exp7.png" width="640"/>
+</p>
+<p align="center"><em>Figure 8 — Work 4 mask-quality ablation: Large SAM baseline (Exp 1) vs. CAHMU-Unified SAM (Exp 7), both on original images with no in-training cropping. Mean mIoU: 53.77% → 59.02% (+5.25%). The gain is dominated by Ramen (+16.62%).</em></p>
+
+**Training-method ablation — negative result:** Objectness-based cluster pruning (Exp 11) is severely detrimental on the Ramen scene (−19.20% mIoU, −34.70% on IoU Acc@0.5). Although the pruning correctly identifies low-objectness clusters in principle, it also removes genuine fine-grained foreground clusters that render below the objectness threshold under partial occlusion or unusual viewpoints. The Exp 9 baseline is retained.
+
+<p align="center">
+  <img src="experiments/Work4_Exp9_vs_Exp11.png" width="660"/>
+</p>
+<p align="center"><em>Figure 9 — Work 4 training-method ablation (Ramen scene): Exp 9 baseline vs. Exp 11 (+Cluster Pruning). Cluster pruning is a clear negative result: mIoU drops from 49.69% to 30.49% (−19.20%) and IoU Acc@0.5 from 61.82% to 27.12% (−34.70%).</em></p>
+
+**Inference re-ranking ablation — negative result:** Two-stage objectness re-ranking (Exp 10) collapses every metric, reducing mIoU from 49.69% to 20.25% (−29.44%) and IoU Acc@0.5 from 61.82% to 7.14% (−54.68%). The rendered-objectness signal consistently demotes the correct top-1 cosine candidate in favour of larger but semantically incorrect clusters. Single-pass cosine retrieval is retained as the final inference procedure.
+
+<p align="center">
+  <img src="experiments/Work4_Exp9_vs_Exp10.png" width="660"/>
+</p>
+<p align="center"><em>Figure 10 — Work 4 inference re-ranking ablation (Ramen scene): Exp 9 (single-pass cosine, top-1) vs. Exp 10 (+two-stage objectness re-ranking, top-5 from top-10). Re-ranking is a clear negative result: mIoU collapses from 49.69% to 20.25% (−29.44%) and IoU Acc@0.5 from 61.82% to 7.14% (−54.68%).</em></p>
+
+---
 
 ### Key Findings
 
