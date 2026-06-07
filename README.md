@@ -341,7 +341,7 @@ The three modifications are stacked sequentially on top of the original backbone
 <p align="center">
   <img src="methodologies/Works_2_3_Architecture.png" width="780"/>
 </p>
-<p align="center"><em>Figure 2 — Feature optimisation architecture shared by Works 2 and 3. Preprocessing supplies cropped black-background render and original mask supervision. Modification 1 adds Multi-view Semantic Tracing with Probabilistic KL Distillation (ℒ<sub>KL–ST</sub>). Modification 2 adds 2D & 3D Contrastive Learning. Modification 3 adds 2D & 3D Hypersphere Regularisation. For Work 3, the Gaussian-Grouping backbone is replaced by SVRaster and GST is correspondingly replaced by VST; all other components are unchanged.</em></p>
+<p align="center"><em>Figure 2 — Feature optimisation architecture shared by Works 2 and 3. Preprocessing supplies cropped black-background rendered and original mask supervision. Modification 1 adds Multi-view Semantic Tracing with Probabilistic KL Distillation (ℒ<sub>KL–ST</sub>). Modification 2 adds 2D & 3D Contrastive Learning. Modification 3 adds 2D & 3D Hypersphere Regularisation. For Work 3, the Gaussian-Grouping backbone is replaced by SVRaster and GST is correspondingly replaced by VST; all other components are unchanged.</em></p>
 
 ### Installation
 
