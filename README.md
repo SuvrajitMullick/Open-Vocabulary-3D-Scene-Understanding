@@ -961,7 +961,7 @@ The following charts summarise the key per-scene and mean mIoU comparisons from 
 - **CAHMU-unified masks** are optimal for Gaussian based representations (Works 2 and 4), delivering +5.08% / +5.25% over default / Large-level SAM respectively.
 - **HQ-SAM on cropped renders** is optimal for the Sparse Voxel based representations (Work 3), outperforming CAHMU-unified by +5.40% — the voxel depth-ordering amplifies HQ-SAM boundary precision.
 - **In-training scene cropping (Crop@30k) is consistently detrimental** for OpenGaussian on LeRF tabletop scenes, degrading mean mIoU by ≈5–7%.
-- Auxiliary losses (Cont, Hyp, GST/VST) produce effects within ≈1% mIoU on any baseline; **VST achieves the best mBIoU and IoU Acc@0.25** on Work 3's HQ-SAM voxel baseline.
+- Auxiliary losses (Cont, Hyp, GST/VST) produce effects within ≈1% mIoU on any baseline; **Hyp achieves the best metrices** on Work 2's CAHMU-unified-SAM Gaussian_grouping baseline, **Cont & VST joinly achieves the best metrices** on Work 3's HQ-SAM SVRaster baseline.
 - Objectness-based cluster pruning and two-stage re-ranking (Work 4) are counter-productive: they remove genuine foreground clusters or demote the correct cosine top-1 cluster.
 
 ---
