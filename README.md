@@ -259,7 +259,7 @@ CAHMU operates in three sequential phases. Phase 1 performs top-down subdivision
 <p align="center">
   <img src="methodologies/CAHMU_Algorithm.png" width="780"/>
 </p>
-<p align="center"><em>Figure 1 — CAHMU algorithm summary: Phase 1 top-down subdivision gated by objectness, complexity, and child appearance diversity; Phase 2 vacuum-filling for orphan masks; Phase 3 objectness-priority overlap resolution.</em></p>
+<p align="center"><em>Figure 1 — CAHMU algorithm summary: Phase 1 top-down subdivision gated by objectness, complexity, and child appearance diversity; Phase 2 vacuum-filling for orphan masks & objectness-priority overlap resolution.</em></p>
 
 ### Step-by-step
 
