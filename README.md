@@ -652,13 +652,29 @@ modified-OpenGaussian/ckpts/
 ### Step 1 — Generate All Mask Variants
 
 ```bash
-# ramen — repeat analogously for figurines and teatime
+# ramen
 python preprocess_sam_l.py  --dataset_path data/lerf_ovs/ramen
 python preprocess_sam_l.py  --dataset_path data/lerf_ovs/ramen --crop
 python preprocess_sam_hq.py --dataset_path data/lerf_ovs/ramen
 python preprocess_sam_hq.py --dataset_path data/lerf_ovs/ramen --crop
-python preprocess_sam_u.py  --dataset_path data/lerf_ovs/ramen          # CAHMU (Work 1)
-python preprocess_sam_u.py  --dataset_path data/lerf_ovs/ramen --crop
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/ramen              # CAHMU (Work 1)
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/ramen --crop       # CAHMU (Work 1)
+
+# figurines
+python preprocess_sam_l.py  --dataset_path data/lerf_ovs/figurines
+python preprocess_sam_l.py  --dataset_path data/lerf_ovs/figurines --crop
+python preprocess_sam_hq.py --dataset_path data/lerf_ovs/figurines
+python preprocess_sam_hq.py --dataset_path data/lerf_ovs/figurines --crop
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/figurines          # CAHMU (Work 1)
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/figurines --crop   # CAHMU (Work 1)
+
+# teatime
+python preprocess_sam_l.py  --dataset_path data/lerf_ovs/teatime
+python preprocess_sam_l.py  --dataset_path data/lerf_ovs/teatime --crop
+python preprocess_sam_hq.py --dataset_path data/lerf_ovs/teatime
+python preprocess_sam_hq.py --dataset_path data/lerf_ovs/teatime --crop
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/teatime            # CAHMU (Work 1)
+python preprocess_sam_u.py  --dataset_path data/lerf_ovs/teatime --crop     # CAHMU (Work 1)
 ```
 
 ### Step 2 — Train Full-Scene 3DGS Geometry
@@ -674,10 +690,20 @@ python train_normal.py -s data/lerf_ovs/teatime   -m output_full_scene/teatime  
 > Required only for Exps 2, 3, 5, 6, 8, 9. Padding values: `ramen` → `1.5`, `figurines` → `0.025`, `teatime` → `1.0`.
 
 ```bash
-# ramen (padding 1.5) — repeat with figurines (0.025) and teatime (1.0)
+# ramen (padding = 1.5)
 cp -r output_full_scene/ramen output/ramen
 python crop_scene.py  -m output/ramen --iteration 30000 --padding 1.5
 python crop_images.py -m output/ramen --iteration 30000
+
+# figurines (padding = 0.025)
+cp -r output_full_scene/figurines output/figurines
+python crop_scene.py  -m output/figurines --iteration 30000 --padding 0.025
+python crop_images.py -m output/figurines --iteration 30000
+
+# teatime (padding = 1.0)
+cp -r output_full_scene/teatime output/teatime
+python crop_scene.py  -m output/teatime --iteration 30000 --padding 1
+python crop_images.py -m output/teatime --iteration 30000
 ```
 
 ### Step 4 — Mask & Cropping Ablation (Exps 1–9)
@@ -730,7 +756,7 @@ bash scripts/train_render_eval.sh ramen output_crop_sam_u crop_language_features
 
 ### Step 5 — Training-Method Ablation (Ramen only — Exps 11, 13, 15)
 
-> Baseline: Exp 9. Configurations found clearly detrimental are not extended to other scenes.
+> Taking Baseline: Exp 9 (Unified SAM, Crop@30k). Below configurations are evaluated on ramen scene only, found clearly detrimental are not extended to other scenes.
 
 ```bash
 # Exp 11: + Cluster Pruning (CP)
