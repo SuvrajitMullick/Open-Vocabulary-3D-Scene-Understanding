@@ -12,7 +12,7 @@
 [![CUDA](https://img.shields.io/badge/CUDA-12.1-green?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Thesis Report](https://img.shields.io/badge/Thesis-Report-blue?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1Om9_l7mFOex-Gd5HtxavMEKmhNxoCGXj/view?usp=drive_link)
+[![Thesis Report](https://img.shields.io/badge/Thesis-Report-blue?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1zYouNBcMpjcJbbW5qMT-cCRQO6wWLh_P/view?usp=drive_link)
 [![Thesis Poster](https://img.shields.io/badge/Thesis-Poster-orange?logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1hHl7NpNGf80wvo7Ca7xD411aMDfha0Tj/view?usp=drive_link)
 
 </div>
